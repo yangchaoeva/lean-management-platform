@@ -1,0 +1,1459 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>精益知识库</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', 'PingFang SC', 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        /* 动态背景粒子效果 */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* 玻璃拟态容器 */
+        .glass-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            margin: 20px;
+            padding: 30px;
+            transition: all 0.3s ease;
+        }
+
+        .glass-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 45px rgba(0, 0, 0, 0.2);
+        }
+
+        /* 标题样式 */
+        .main-title {
+            text-align: center;
+            font-size: 3.5rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, #fff, #f0f0f0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .subtitle {
+            text-align: center;
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 20px;
+            font-style: italic;
+        }
+
+        .quote {
+            text-align: center;
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 40px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            border-left: 4px solid #fff;
+        }
+
+        /* 导航菜单 */
+        .nav-menu {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+
+        .nav-item {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 25px;
+            padding: 12px 24px;
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        /* 内容区域 */
+        .content-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .section-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .section-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-emoji {
+            font-size: 2rem;
+        }
+
+        /* 表格样式 */
+        .glass-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .glass-table th,
+        .glass-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .glass-table th {
+            background: rgba(255, 255, 255, 0.1);
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .glass-table tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        /* 体系总览卡片布局 */
+        .overview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .overview-card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(15px);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .overview-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .overview-card:hover::before {
+            left: 100%;
+        }
+
+        .overview-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .overview-icon {
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .overview-label {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 8px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .overview-content {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.95rem;
+            line-height: 1.5;
+            font-weight: 400;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .overview-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .overview-card {
+                padding: 20px;
+            }
+            
+            .overview-icon {
+                font-size: 2rem;
+            }
+        }
+
+        /* 列表样式 */
+        .glass-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .glass-list li {
+            background: rgba(255, 255, 255, 0.05);
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .glass-list li:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(10px);
+        }
+
+        .glass-list li strong {
+            color: #fff;
+            font-weight: 600;
+        }
+
+        /* 悬停效果样式 */
+        .hover-item {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .hover-detail {
+            opacity: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: all 0.4s ease;
+            margin-top: 8px;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .hover-item:hover .hover-detail {
+            opacity: 1;
+            max-height: 200px;
+            margin-top: 12px;
+        }
+
+        .hover-item:hover {
+            background: rgba(255, 255, 255, 0.12);
+            transform: translateX(15px) scale(1.02);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        /* 新的卡片式布局样式 */
+        .philosophy-container {
+            position: relative;
+            width: 100vw;
+            margin: 0;
+            padding: 40px 0;
+            margin-left: calc(-50vw + 50%);
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.1), rgba(255, 255, 255, 0.05));
+            backdrop-filter: blur(5px);
+        }
+
+        .philosophy-core {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .core-circle {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.05));
+            backdrop-filter: blur(20px);
+            border-radius: 50%;
+            width: 160px;
+            height: 160px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            position: relative;
+            animation: coreGlow 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes coreGlow {
+            0% {
+                box-shadow: 0 0 30px rgba(255, 255, 255, 0.2), inset 0 0 20px rgba(255, 255, 255, 0.1);
+                transform: scale(1);
+            }
+            100% {
+                box-shadow: 0 0 50px rgba(255, 255, 255, 0.4), inset 0 0 30px rgba(255, 255, 255, 0.2);
+                transform: scale(1.05);
+            }
+        }
+
+        .core-icon {
+            font-size: 3rem;
+            margin-bottom: 8px;
+            animation: iconRotate 4s linear infinite;
+        }
+
+        @keyframes iconRotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .core-title {
+            color: #fff;
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .core-subtitle {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .philosophy-cards {
+            display: flex;
+            justify-content: space-between;
+            align-items: stretch;
+            gap: 30px;
+            max-width: none;
+            width: 100%;
+            padding: 0 40px;
+            margin: 0;
+        }
+
+        .philosophy-card {
+            flex: 1;
+            min-width: 0;
+            max-width: none;
+        }
+
+        .philosophy-card {
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 35px 25px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .philosophy-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .philosophy-card:hover::before {
+            left: 100%;
+        }
+
+        .philosophy-card:hover {
+            background: rgba(255, 255, 255, 0.12);
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .card-customer {
+            border-left: 4px solid #4FC3F7;
+        }
+
+        .card-improvement {
+            border-left: 4px solid #66BB6A;
+        }
+
+        .card-efficiency {
+            border-left: 4px solid #FFA726;
+        }
+
+        .card-header {
+            text-align: center;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .card-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            display: block;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+        }
+
+        .card-title {
+            color: #fff;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-subtitle {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+            font-weight: 400;
+            font-style: italic;
+        }
+
+        .card-content {
+            space-y: 15px;
+        }
+
+        .principle-item {
+            display: flex;
+            align-items: flex-start;
+            padding: 12px 16px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .principle-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(8px);
+        }
+
+        .principle-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.4));
+            margin-right: 12px;
+            margin-top: 6px;
+            flex-shrink: 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .principle-item strong {
+            color: #fff;
+            font-weight: 600;
+            display: block;
+            margin-bottom: 5px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .connection-lines {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .connection-svg {
+            width: 100%;
+            height: 100%;
+            opacity: 0.6;
+        }
+
+        /* 响应式设计 */
+          @media (max-width: 1024px) {
+              .philosophy-container {
+                  padding: 30px 0;
+              }
+              
+              .philosophy-cards {
+                  padding: 0 20px;
+                  gap: 20px;
+              }
+              
+              .philosophy-card {
+                  padding: 30px 20px;
+              }
+          }
+          
+          @media (max-width: 768px) {
+              .philosophy-container {
+                  width: 100%;
+                  margin-left: 0;
+                  padding: 20px 0;
+              }
+              
+              .philosophy-cards {
+                  flex-direction: column;
+                  gap: 15px;
+                  padding: 0 15px;
+              }
+              
+              .philosophy-card {
+                  padding: 25px 20px;
+                  min-width: auto;
+                  max-width: none;
+              }
+              
+              .core-circle {
+                  width: 120px;
+                  height: 120px;
+              }
+              
+              .core-icon {
+                  font-size: 2.2rem;
+              }
+              
+              .card-icon {
+                  font-size: 2.2rem;
+              }
+          }
+
+        @media (max-width: 480px) {
+            .philosophy-container {
+                padding: 20px 0;
+            }
+            
+            .philosophy-core {
+                margin-bottom: 30px;
+            }
+            
+            .core-circle {
+                width: 120px;
+                height: 120px;
+            }
+            
+            .core-title {
+                font-size: 1rem;
+            }
+            
+            .card-title {
+                font-size: 1.3rem;
+            }
+        }
+
+        /* 流程步骤 */
+        .process-steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .step-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .step-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .step-card:hover::before {
+            left: 100%;
+        }
+
+        .step-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .step-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 10px;
+        }
+
+        .step-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 10px;
+        }
+
+        .step-desc {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        /* 工具网格 */
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .tool-card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .tool-card:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .tool-name {
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 8px;
+        }
+
+        .tool-desc {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+        }
+
+        /* 工具详情弹窗 */
+        .tool-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.9) 0%, rgba(118, 75, 162, 0.9) 50%, rgba(240, 147, 251, 0.9) 100%);
+            backdrop-filter: blur(15px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .tool-modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: scale(0.8) translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .modal-close:hover {
+            color: #ff6b6b;
+            transform: scale(1.1);
+        }
+
+        .modal-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .modal-definition {
+            font-size: 1.2rem;
+            color: #fff;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            border-left: 4px solid rgba(255, 255, 255, 0.4);
+        }
+
+        .modal-usage {
+            color: rgba(255, 255, 255, 0.9);
+            line-height: 1.6;
+        }
+
+        .modal-usage h4 {
+            color: white;
+            font-size: 1.1rem;
+            margin: 15px 0 10px 0;
+        }
+
+        .modal-usage ul {
+            padding-left: 20px;
+        }
+
+        .modal-usage li {
+            margin: 8px 0;
+        }
+
+        /* 引用样式 */
+        .quote-card {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+            border-left: 5px solid rgba(255, 255, 255, 0.4);
+            position: relative;
+        }
+
+        .quote-card::before {
+            content: '"';
+            font-size: 4rem;
+            color: rgba(255, 255, 255, 0.2);
+            position: absolute;
+            top: 10px;
+            left: 20px;
+            font-family: serif;
+        }
+
+        .quote-text {
+            color: white;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-left: 40px;
+        }
+
+        .quote-author {
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 600;
+            margin-top: 15px;
+            text-align: right;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .main-title {
+                font-size: 2.5rem;
+            }
+            
+            .glass-container {
+                margin: 10px;
+                padding: 20px;
+            }
+            
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-menu {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+
+        /* 滚动条样式 */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation"></div>
+    
+    <div class="glass-container">
+        <h1 class="main-title">精益知识库</h1>
+        <p class="subtitle">YUEXIU HEALTH & YUEXIU PROPERTY</p>
+        <div class="quote">
+            "把客户需求当作一切工作的起点和终点，客户定义了我们的成功。"
+        </div>
+        
+        <nav class="nav-menu">
+            <a href="#philosophy" class="nav-item">工作理念</a>
+            <a href="#overview" class="nav-item">体系总览</a>
+            <a href="#method" class="nav-item">改善六步法</a>
+            <a href="#tools" class="nav-item">工具地图</a>
+            <a href="#template" class="nav-item">三页纸</a>
+        </nav>
+    </div>
+
+    <div class="content-grid">
+        <div class="section-card" id="philosophy">
+            <h2 class="section-title">
+                <span class="section-emoji">🔺</span>
+                工作理念 —— "秀三角"
+            </h2>
+            
+            <div class="philosophy-container">
+                <!-- 中心核心理念 -->
+                <div class="philosophy-core">
+                    <div class="core-circle">
+                        <div class="core-icon">✨</div>
+                        <div class="core-title">精益管理</div>
+                        <div class="core-subtitle">三位一体</div>
+                    </div>
+                </div>
+                
+                <!-- 三大理念卡片 -->
+                <div class="philosophy-cards">
+                    <!-- 客户导向卡片 -->
+                    <div class="philosophy-card card-customer">
+                        <div class="card-header">
+                            <div class="card-icon">🎯</div>
+                            <h3 class="card-title">客户导向</h3>
+                            <div class="card-subtitle">Customer Oriented</div>
+                        </div>
+                        <div class="card-content">
+                            <div class="principle-item hover-item">
+                                <div class="principle-dot"></div>
+                                <strong>需求牵引</strong>
+                                <div class="hover-detail">真正的竞争对手是不断变化的客户需求。工作成果的唯一评估标准：客户需求是否被满足。</div>
+                            </div>
+                            <div class="principle-item hover-item">
+                                <div class="principle-dot"></div>
+                                <strong>品质至上</strong>
+                                <div class="hover-detail">提供可体验、可感知的价值，超越客户期待。</div>
+                            </div>
+                            <div class="principle-item hover-item">
+                                <div class="principle-dot"></div>
+                                <strong>敏捷应变</strong>
+                                <div class="hover-detail">假设 → 执行 → 验证，快速迭代以逼近真实需求。</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 持续改善卡片 -->
+                    <div class="philosophy-card card-improvement">
+                        <div class="card-header">
+                            <div class="card-icon">🔄</div>
+                            <h3 class="card-title">持续改善</h3>
+                            <div class="card-subtitle">Continuous Improvement</div>
+                        </div>
+                        <div class="card-content">
+                            <div class="principle-item hover-item">
+                                <div class="principle-dot"></div>
+                                <strong>责任担当</strong>
+                                <div class="hover-detail">把客户需求内化为自身责任，"爱操心"，打破岗位/层级边界。</div>
+                            </div>
+                            <div class="principle-item hover-item">
+                                <div class="principle-dot"></div>
+                                <strong>穷尽问题</strong>
+                                <div class="hover-detail">问题是改善的机会；没有问题是最大的问题。</div>
+                            </div>
+                            <div class="principle-item hover-item">
+                                <div class="principle-dot"></div>
+                                <strong>立足现场</strong>
+                                <div class="hover-detail">到问题发生的地方去，把握真正的现实。</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 追求效益卡片 -->
+                    <div class="philosophy-card card-efficiency">
+                        <div class="card-header">
+                            <div class="card-icon">📈</div>
+                            <h3 class="card-title">追求效益</h3>
+                            <div class="card-subtitle">Efficiency Pursuit</div>
+                        </div>
+                        <div class="card-content">
+                            <div class="principle-item hover-item">
+                                <div class="principle-dot"></div>
+                                <strong>高效协同</strong>
+                                <div class="hover-detail">破除"部门墙"，贯彻"一个越秀"。</div>
+                            </div>
+                            <div class="principle-item hover-item">
+                                <div class="principle-dot"></div>
+                                <strong>消除浪费</strong>
+                                <div class="hover-detail">不压降成本，而是消除九大浪费：不良品、闲置、过度消耗、延迟、冗余/重复操作、管理过度、信息孤岛……</div>
+                            </div>
+                            <div class="principle-item hover-item">
+                                <div class="principle-dot"></div>
+                                <strong>长期主义</strong>
+                                <div class="hover-detail">战略定力 > 短期利益；以能力提升的确定性应对外部不确定性。</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 连接线装饰 -->
+                <div class="connection-lines">
+                    <svg class="connection-svg" viewBox="0 0 400 300">
+                        <defs>
+                            <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:rgba(255,255,255,0.6);stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:rgba(255,255,255,0.1);stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        <path d="M200 150 L100 80 M200 150 L300 80 M200 150 L200 220" 
+                              stroke="url(#lineGradient)" 
+                              stroke-width="2" 
+                              fill="none" 
+                              stroke-dasharray="5,5">
+                            <animate attributeName="stroke-dashoffset" 
+                                     values="0;10" 
+                                     dur="2s" 
+                                     repeatCount="indefinite"/>
+                        </path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="glass-container" id="overview">
+        <h2 class="section-title">
+            <span class="section-emoji">🎯</span>
+            体系总览
+        </h2>
+        <div class="overview-grid">
+            <div class="overview-card">
+                <div class="overview-icon">🎯</div>
+                <div class="overview-label">目标</div>
+                <div class="overview-content">成为受人尊敬的优秀企业（百年老店）</div>
+            </div>
+            <div class="overview-card">
+                <div class="overview-icon">🚀</div>
+                <div class="overview-label">使命</div>
+                <div class="overview-content">回报客户、员工、股东、社会</div>
+            </div>
+            <div class="overview-card">
+                <div class="overview-icon">💎</div>
+                <div class="overview-label">价值观</div>
+                <div class="overview-content">专业、敬业、勤业</div>
+            </div>
+            <div class="overview-card">
+                <div class="overview-icon">📈</div>
+                <div class="overview-label">精益"益"</div>
+                <div class="overview-content">经济效益 + 人的发展 + 核心价值观传播</div>
+            </div>
+            <div class="overview-card">
+                <div class="overview-icon">⚡</div>
+                <div class="overview-label">方法论</div>
+                <div class="overview-content">客户导向 × 持续改善 × 追求效益</div>
+            </div>
+            <div class="overview-card">
+                <div class="overview-icon">🛤️</div>
+                <div class="overview-label">落地路径</div>
+                <div class="overview-content">改善六步法（IF-PDCA）</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="glass-container" id="method">
+        <h2 class="section-title">
+            <span class="section-emoji">🔄</span>
+            改善六步法（IF-PDCA）
+        </h2>
+        
+        <div class="process-steps">
+            <div class="step-card">
+                <div class="step-number">1</div>
+                <div class="step-title">洞察需求 (Insight)</div>
+                <div class="step-desc">
+                    • 穷尽客户&需求<br>
+                    • 筛选关键需求<br>
+                    • 形成需求假设
+                </div>
+            </div>
+            
+            <div class="step-card">
+                <div class="step-number">2</div>
+                <div class="step-title">聚焦关键 (Focus)</div>
+                <div class="step-desc">
+                    • 评估现状<br>
+                    • 理想状态描绘<br>
+                    • 问题差距可视化
+                </div>
+            </div>
+            
+            <div class="step-card">
+                <div class="step-number">3</div>
+                <div class="step-title">制定计划 (Plan)</div>
+                <div class="step-desc">
+                    • 对策提出与评估<br>
+                    • 行动计划 & 资源<br>
+                    • 目标可视化
+                </div>
+            </div>
+            
+            <div class="step-card">
+                <div class="step-number">4</div>
+                <div class="step-title">贯彻执行 (Do)</div>
+                <div class="step-desc">
+                    • 按节点实施<br>
+                    • 异常快速处置
+                </div>
+            </div>
+            
+            <div class="step-card">
+                <div class="step-number">5</div>
+                <div class="step-title">检查验证 (Check)</div>
+                <div class="step-desc">
+                    • 评估目标达成<br>
+                    • 与真实客户再次验证需求满足度
+                </div>
+            </div>
+            
+            <div class="step-card">
+                <div class="step-number">6</div>
+                <div class="step-title">巩固提升 (Act)</div>
+                <div class="step-desc">
+                    • 标准化（SOP/制度）<br>
+                    • 横向推广 & 经验分享
+                </div>
+            </div>
+        </div>
+        
+        <div class="quote-card">
+            <div class="quote-text">
+                对于简单问题，可直接使用小 PDCA 闭环（Plan-Do-Check-Act）。
+            </div>
+        </div>
+    </div>
+
+    <div class="content-grid">
+        <div class="section-card" id="tools">
+            <h2 class="section-title">
+                <span class="section-emoji">🛠️</span>
+                工具地图
+            </h2>
+            
+            <h3 style="color: #fff; margin: 20px 0 15px 0;">通用工具</h3>
+            <div class="tools-grid">
+                <div class="tool-card" data-tool="5why">
+                    <div class="tool-name">5Why / 鱼骨图</div>
+                    <div class="tool-desc">找根因</div>
+                </div>
+                <div class="tool-card" data-tool="flowchart">
+                    <div class="tool-name">流程图</div>
+                    <div class="tool-desc">还原现状流程</div>
+                </div>
+                <div class="tool-card" data-tool="sop">
+                    <div class="tool-name">SOP</div>
+                    <div class="tool-desc">固化最佳实践</div>
+                </div>
+                <div class="tool-card" data-tool="visualization">
+                    <div class="tool-name">可视化</div>
+                    <div class="tool-desc">让问题/进度一目了然</div>
+                </div>
+            </div>
+            
+            <h3 style="color: #fff; margin: 30px 0 15px 0;">专用工具</h3>
+            <div class="tools-grid">
+                <div class="tool-card" data-tool="vsm">
+                    <div class="tool-name">VSM（价值流程图）</div>
+                    <div class="tool-desc">识别全流程浪费</div>
+                </div>
+                <div class="tool-card" data-tool="tpm">
+                    <div class="tool-name">TPM</div>
+                    <div class="tool-desc">设备零故障</div>
+                </div>
+                <div class="tool-card" data-tool="6s">
+                    <div class="tool-name">6S</div>
+                    <div class="tool-desc">现场规范化</div>
+                </div>
+                <div class="tool-card" data-tool="smed">
+                    <div class="tool-name">SMED</div>
+                    <div class="tool-desc">快速切换</div>
+                </div>
+                <div class="tool-card" data-tool="kano">
+                    <div class="tool-name">KANO</div>
+                    <div class="tool-desc">需求分层</div>
+                </div>
+                <div class="tool-card" data-tool="mece">
+                    <div class="tool-name">MECE</div>
+                    <div class="tool-desc">问题分解</div>
+                </div>
+                <div class="tool-card" data-tool="ergonomics">
+                    <div class="tool-name">人因工程</div>
+                    <div class="tool-desc">优化人机交互</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-card" id="template">
+            <h2 class="section-title">
+                <span class="section-emoji">📄</span>
+                "三页纸" 标准化模板
+            </h2>
+            
+            <div class="quote-card">
+                <div class="quote-text">
+                    任何课题/项目，必须用三张 A4 讲清楚：
+                </div>
+            </div>
+            
+            <table class="glass-table">
+                <tr>
+                    <th>页码</th>
+                    <th>标题</th>
+                    <th>核心栏目</th>
+                </tr>
+                <tr>
+                    <td><strong>第1页</strong></td>
+                    <td>背景·目标·指标</td>
+                    <td>• 课题背景<br>• 基准水平 / 改善水平 / 革新水平<br>• 战略/规范要求</td>
+                </tr>
+                <tr>
+                    <td><strong>第2页</strong></td>
+                    <td>需求·现状·差距</td>
+                    <td>• 客户与需求列表<br>• 现状数据/图片/模型<br>• 理想状态描绘<br>• 差距 = 问题可视化</td>
+                </tr>
+                <tr>
+                    <td><strong>第3页</strong></td>
+                    <td>计划·验证·标准化</td>
+                    <td>• 对策评估与筛选<br>• 行动计划（5W2H）<br>• 检查验证表<br>• 标准化与推广方案</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <!-- 工具详情弹窗 -->
+    <div class="tool-modal" id="toolModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeToolModal()">&times;</button>
+            <h2 class="modal-title" id="modalTitle"></h2>
+            <div class="modal-definition" id="modalDefinition"></div>
+            <div class="modal-usage" id="modalUsage"></div>
+        </div>
+    </div>
+
+    <script>
+        // 工具详情数据
+        const toolsData = {
+            '5why': {
+                title: '5Why / 鱼骨图',
+                definition: '通过连续问"为什么"来追溯问题根本原因的分析工具',
+                usage: `
+                    <h4>使用方法：</h4>
+                    <ul>
+                        <li><strong>5Why法：</strong>针对问题现象，连续问5次"为什么"，逐层深入找到根本原因</li>
+                        <li><strong>鱼骨图：</strong>以问题为"鱼头"，从人、机、料、法、环、测六个维度分析可能原因</li>
+                        <li><strong>适用场景：</strong>质量问题分析、流程问题诊断、事故原因调查</li>
+                        <li><strong>注意事项：</strong>避免停留在表面现象，确保每个"为什么"都有事实依据</li>
+                    </ul>
+                `
+            },
+            'flowchart': {
+                title: '流程图',
+                definition: '用图形化方式描述业务流程的工具，清晰展现流程步骤和决策点',
+                usage: `
+                    <h4>使用方法：</h4>
+                    <ul>
+                        <li><strong>绘制步骤：</strong>确定起点和终点，识别关键活动，标注决策点和分支</li>
+                        <li><strong>符号规范：</strong>椭圆表示开始/结束，矩形表示活动，菱形表示决策</li>
+                        <li><strong>应用场景：</strong>流程梳理、问题诊断、流程优化、培训指导</li>
+                        <li><strong>优化要点：</strong>识别冗余环节、简化决策点、减少等待时间</li>
+                    </ul>
+                `
+            },
+            'sop': {
+                title: 'SOP（标准作业程序）',
+                definition: '将最佳实践固化为标准化操作程序，确保工作质量和效率的一致性',
+                usage: `
+                    <h4>使用方法：</h4>
+                    <ul>
+                        <li><strong>编制原则：</strong>简洁明了、可操作性强、易于理解和执行</li>
+                        <li><strong>内容要素：</strong>目的、适用范围、操作步骤、注意事项、异常处理</li>
+                        <li><strong>实施要点：</strong>培训到位、严格执行、定期更新、持续改进</li>
+                        <li><strong>管理机制：</strong>建立检查机制、收集反馈、及时修订</li>
+                    </ul>
+                `
+            },
+            'visualization': {
+                title: '可视化管理',
+                definition: '通过图表、看板等视觉工具，让问题、进度、状态一目了然的管理方法',
+                usage: `
+                    <h4>使用方法：</h4>
+                    <ul>
+                        <li><strong>看板管理：</strong>用颜色、图标直观显示工作状态和进度</li>
+                        <li><strong>数据图表：</strong>用趋势图、柱状图等展现关键指标变化</li>
+                        <li><strong>现场标识：</strong>用标签、线条等标识物品位置和状态</li>
+                        <li><strong>设计原则：</strong>简洁直观、信息准确、及时更新、易于理解</li>
+                    </ul>
+                `
+            },
+            'vsm': {
+                title: 'VSM（价值流程图）',
+                definition: '识别和分析整个价值流中的浪费，优化从原材料到客户的完整流程',
+                usage: `
+                    <h4>使用方法：</h4>
+                    <ul>
+                        <li><strong>现状图绘制：</strong>记录所有流程步骤、库存点、信息流和物料流</li>
+                        <li><strong>数据收集：</strong>测量周期时间、等待时间、库存量、人员配置</li>
+                        <li><strong>浪费识别：</strong>找出非增值活动、瓶颈环节、库存积压点</li>
+                        <li><strong>未来图设计：</strong>消除浪费、平衡生产线、建立拉动系统</li>
+                    </ul>
+                `
+            },
+            'tpm': {
+                title: 'TPM（全员生产维护）',
+                definition: '通过全员参与的设备维护活动，实现设备零故障、零缺陷的目标',
+                usage: `
+                    <h4>使用方法：</h4>
+                    <ul>
+                        <li><strong>自主维护：</strong>操作员负责设备日常清洁、点检、润滑</li>
+                        <li><strong>计划维护：</strong>制定预防性维护计划，定期保养和检修</li>
+                        <li><strong>改善维护：</strong>分析故障原因，改进设备设计和维护方法</li>
+                        <li><strong>教育训练：</strong>提升全员设备维护技能和意识</li>
+                    </ul>
+                `
+            },
+            '6s': {
+                title: '6S现场管理',
+                definition: '通过整理、整顿、清扫、清洁、素养、安全六个步骤，创造高效有序的工作环境',
+                usage: `
+                    <h4>使用方法：</h4>
+                    <ul>
+                        <li><strong>整理（Sort）：</strong>区分必需品和非必需品，清除不必要物品</li>
+                        <li><strong>整顿（Set）：</strong>必需品定位定量，标识清楚，取用方便</li>
+                        <li><strong>清扫（Shine）：</strong>清除脏污，保持工作场所整洁</li>
+                        <li><strong>清洁（Standardize）：</strong>制定标准，维持前3S成果</li>
+                        <li><strong>素养（Sustain）：</strong>养成良好习惯，自觉遵守规则</li>
+                        <li><strong>安全（Safety）：</strong>确保人员和设备安全</li>
+                    </ul>
+                `
+            },
+            'smed': {
+                title: 'SMED（快速换模）',
+                definition: '通过改善换线换模作业，实现快速切换，减少停机时间的方法',
+                usage: `
+                    <h4>使用方法：</h4>
+                    <ul>
+                        <li><strong>区分作业：</strong>分离内部作业（停机时）和外部作业（运行时）</li>
+                        <li><strong>外部化：</strong>将内部作业转换为外部作业，减少停机时间</li>
+                        <li><strong>简化调整：</strong>标准化操作，减少调整时间和次数</li>
+                        <li><strong>并行作业：</strong>多人协作，同时进行多项换模作业</li>
+                    </ul>
+                `
+            },
+            'kano': {
+                title: 'KANO模型',
+                definition: '根据客户满意度将需求分为基本型、期望型、兴奋型三个层次的分析工具',
+                usage: `
+                    <h4>使用方法：</h4>
+                    <ul>
+                        <li><strong>需求调研：</strong>通过问卷调查了解客户对各功能的态度</li>
+                        <li><strong>需求分类：</strong>基本型（必须有）、期望型（越多越好）、兴奋型（意想不到）</li>
+                        <li><strong>优先级排序：</strong>优先满足基本需求，重点提升期望需求</li>
+                        <li><strong>产品策略：</strong>基于需求层次制定产品开发和改进策略</li>
+                    </ul>
+                `
+            },
+            'mece': {
+                title: 'MECE原则',
+                definition: '相互独立、完全穷尽的问题分解原则，确保分析的全面性和逻辑性',
+                usage: `
+                    <h4>使用方法：</h4>
+                    <ul>
+                        <li><strong>相互独立：</strong>各分类之间没有重叠，避免重复分析</li>
+                        <li><strong>完全穷尽：</strong>涵盖所有可能情况，不遗漏重要因素</li>
+                        <li><strong>分解技巧：</strong>按时间、空间、对象、属性等维度分类</li>
+                        <li><strong>应用场景：</strong>问题分析、方案制定、数据分类、决策分析</li>
+                    </ul>
+                `
+            },
+            'ergonomics': {
+                title: '人因工程',
+                definition: '研究人与机器、环境的相互作用，优化人机界面，提高工作效率和安全性',
+                usage: `
+                    <h4>使用方法：</h4>
+                    <ul>
+                        <li><strong>工作分析：</strong>分析作业姿势、动作频率、力量需求</li>
+                        <li><strong>界面设计：</strong>优化操作界面布局，符合人体工学原理</li>
+                        <li><strong>环境改善：</strong>调整照明、噪音、温度等工作环境因素</li>
+                        <li><strong>培训指导：</strong>教授正确的操作姿势和方法</li>
+                    </ul>
+                `
+            }
+        };
+
+        // 显示工具详情
+        function showToolDetail(toolKey) {
+            const tool = toolsData[toolKey];
+            if (tool) {
+                document.getElementById('modalTitle').textContent = tool.title;
+                document.getElementById('modalDefinition').textContent = tool.definition;
+                document.getElementById('modalUsage').innerHTML = tool.usage;
+                document.getElementById('toolModal').classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+        }
+
+        // 关闭工具详情弹窗
+        function closeToolModal() {
+            document.getElementById('toolModal').classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        // 点击背景关闭弹窗
+        document.getElementById('toolModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeToolModal();
+            }
+        });
+
+        // 为工具卡片添加点击事件
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.tool-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    const toolKey = this.getAttribute('data-tool');
+                    showToolDetail(toolKey);
+                });
+            });
+        });
+
+        // 平滑滚动导航
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href').substring(1);
+                const targetElement = document.getElementById(targetId);
+                if (targetElement) {
+                    targetElement.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // 添加滚动时的视差效果
+        window.addEventListener('scroll', () => {
+            const scrolled = window.pageYOffset;
+            const parallax = document.querySelector('.bg-animation');
+            const speed = scrolled * 0.5;
+            parallax.style.transform = `translateY(${speed}px)`;
+        });
+
+        // 添加卡片进入动画
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // 初始化动画
+        document.querySelectorAll('.section-card, .step-card').forEach(card => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(30px)';
+            card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(card);
+        });
+    </script>
+</body>
+</html>
