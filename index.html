@@ -635,13 +635,13 @@
         }
 
         .principle-item {
-            display: flex;
-            align-items: flex-start;
+            display: block;
             padding: 12px 16px;
             border-radius: 12px;
             transition: all 0.3s ease;
             cursor: pointer;
             position: relative;
+            padding-left: 32px;
         }
 
         .principle-item:hover {
@@ -649,14 +649,16 @@
             transform: translateX(8px);
         }
 
-        .principle-dot {
+        .principle-item::before {
+            content: '';
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
             width: 8px;
             height: 8px;
             border-radius: 50%;
             background: linear-gradient(135deg, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.4));
-            margin-right: 12px;
-            margin-top: 6px;
-            flex-shrink: 0;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
 
@@ -666,6 +668,21 @@
             display: block;
             margin-bottom: 5px;
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+            line-height: 1.2;
+        }
+
+        .principle-item.single-line {
+            display: block;
+            width: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .principle-item.single-line strong {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .connection-lines {
@@ -1342,64 +1359,82 @@
             border-left: 4px solid #4caf50;
         }
 
-        /* 知识库精选文件样式 */
-        .knowledge-files-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
+        /* 知识库精选文件样式 - 简约一行布局 */
+        .knowledge-files-list {
             margin-bottom: 25px;
         }
 
-        .knowledge-file-card {
-            background: rgba(255, 255, 255, 0.08);
-            border-radius: 12px;
-            padding: 20px;
+        .knowledge-file-item {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 8px;
             border: 1px solid rgba(255, 255, 255, 0.1);
             transition: all 0.3s ease;
             cursor: pointer;
         }
 
-        .knowledge-file-card:hover {
-            background: rgba(255, 255, 255, 0.12);
+        .knowledge-file-item:hover {
+            background: rgba(255, 255, 255, 0.1);
             border-color: rgba(255, 255, 255, 0.2);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+            transform: translateX(5px);
         }
 
-        .file-card-header {
+        .file-item-icon {
+            font-size: 1.2rem;
+            margin-right: 12px;
+            min-width: 24px;
+        }
+
+        .file-item-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .file-item-name {
+            color: white;
+            font-weight: 500;
+            font-size: 1rem;
+            margin: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .file-item-meta {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.85rem;
+            margin-top: 2px;
+        }
+
+        .file-item-actions {
+            display: flex;
+            gap: 8px;
+            margin-left: 12px;
+        }
+
+        .file-action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+            text-decoration: none;
             display: flex;
             align-items: center;
-            margin-bottom: 12px;
+            gap: 4px;
         }
 
-        .file-type-icon {
-            font-size: 1.5rem;
-            margin-right: 12px;
-        }
-
-        .file-card-title {
+        .download-btn {
+            background: rgba(76, 175, 80, 0.8);
             color: white;
-            font-weight: 600;
-            font-size: 1.1rem;
-            margin: 0;
-            line-height: 1.3;
         }
 
-        .file-card-meta {
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 0.9rem;
-            margin-bottom: 10px;
-        }
-
-        .file-card-description {
-            color: rgba(255, 255, 255, 0.8);
-            font-size: 0.95rem;
-            line-height: 1.4;
-            margin-bottom: 15px;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
+        .download-btn:hover {
+            background: rgba(76, 175, 80, 1);
         }
 
         .file-card-actions {
@@ -1489,9 +1524,7 @@
                 justify-content: flex-end;
             }
             
-            .knowledge-files-grid {
-                grid-template-columns: 1fr;
-            }
+
         }
     </style>
 </head>
@@ -1508,7 +1541,6 @@
         <nav class="nav-menu">
             <div class="nav-left">
                 <a href="#philosophy" class="nav-item">工作理念</a>
-                <a href="#overview" class="nav-item">体系总览</a>
                 <a href="#method" class="nav-item">改善六步法</a>
                 <a href="#tools" class="nav-item">工具地图</a>
                 <a href="#template" class="nav-item">三页纸</a>
@@ -1590,18 +1622,15 @@
                             <div class="card-subtitle">Customer Oriented</div>
                         </div>
                         <div class="card-content">
-                            <div class="principle-item hover-item">
-                                <div class="principle-dot"></div>
+                            <div class="principle-item hover-item single-line">
                                 <strong>需求牵引</strong>
                                 <div class="hover-detail">真正的竞争对手是不断变化的客户需求。工作成果的唯一评估标准：客户需求是否被满足。</div>
                             </div>
                             <div class="principle-item hover-item">
-                                <div class="principle-dot"></div>
                                 <strong>品质至上</strong>
                                 <div class="hover-detail">提供可体验、可感知的价值，超越客户期待。</div>
                             </div>
                             <div class="principle-item hover-item">
-                                <div class="principle-dot"></div>
                                 <strong>敏捷应变</strong>
                                 <div class="hover-detail">假设 → 执行 → 验证，快速迭代以逼近真实需求。</div>
                             </div>
@@ -1617,17 +1646,14 @@
                         </div>
                         <div class="card-content">
                             <div class="principle-item hover-item">
-                                <div class="principle-dot"></div>
                                 <strong>责任担当</strong>
                                 <div class="hover-detail">把客户需求内化为自身责任，"爱操心"，打破岗位/层级边界。</div>
                             </div>
                             <div class="principle-item hover-item">
-                                <div class="principle-dot"></div>
                                 <strong>穷尽问题</strong>
                                 <div class="hover-detail">问题是改善的机会；没有问题是最大的问题。</div>
                             </div>
                             <div class="principle-item hover-item">
-                                <div class="principle-dot"></div>
                                 <strong>立足现场</strong>
                                 <div class="hover-detail">到问题发生的地方去，把握真正的现实。</div>
                             </div>
@@ -1643,17 +1669,14 @@
                         </div>
                         <div class="card-content">
                             <div class="principle-item hover-item">
-                                <div class="principle-dot"></div>
                                 <strong>高效协同</strong>
                                 <div class="hover-detail">破除"部门墙"，贯彻"一个越秀"。</div>
                             </div>
-                            <div class="principle-item hover-item">
-                                <div class="principle-dot"></div>
+                            <div class="principle-item hover-item single-line">
                                 <strong>消除浪费</strong>
                                 <div class="hover-detail">不压降成本，而是消除九大浪费：不良品、闲置、过度消耗、延迟、冗余/重复操作、管理过度、信息孤岛……</div>
                             </div>
-                            <div class="principle-item hover-item">
-                                <div class="principle-dot"></div>
+                            <div class="principle-item hover-item single-line">
                                 <strong>长期主义</strong>
                                 <div class="hover-detail">战略定力 > 短期利益；以能力提升的确定性应对外部不确定性。</div>
                             </div>
@@ -1686,44 +1709,7 @@
         </div>
     </div>
 
-    <div class="glass-container" id="overview">
-        <h2 class="section-title">
-            <span class="section-emoji">🎯</span>
-            体系总览
-        </h2>
-        <div class="overview-grid">
-            <div class="overview-card">
-                <div class="overview-icon">🎯</div>
-                <div class="overview-label">目标</div>
-                <div class="overview-content">成为受人尊敬的优秀企业（百年老店）</div>
-            </div>
-            <div class="overview-card">
-                <div class="overview-icon">🚀</div>
-                <div class="overview-label">使命</div>
-                <div class="overview-content">回报客户、员工、股东、社会</div>
-            </div>
-            <div class="overview-card">
-                <div class="overview-icon">💎</div>
-                <div class="overview-label">价值观</div>
-                <div class="overview-content">专业、敬业、勤业</div>
-            </div>
-            <div class="overview-card">
-                <div class="overview-icon">📈</div>
-                <div class="overview-label">精益"益"</div>
-                <div class="overview-content">经济效益 + 人的发展 + 核心价值观传播</div>
-            </div>
-            <div class="overview-card">
-                <div class="overview-icon">⚡</div>
-                <div class="overview-label">方法论</div>
-                <div class="overview-content">客户导向 × 持续改善 × 追求效益</div>
-            </div>
-            <div class="overview-card">
-                <div class="overview-icon">🛤️</div>
-                <div class="overview-label">落地路径</div>
-                <div class="overview-content">改善六步法（IF-PDCA）</div>
-            </div>
-        </div>
-    </div>
+
 
     <div class="glass-container" id="method">
         <h2 class="section-title">
@@ -1857,22 +1843,7 @@
             </div>
         </div>
 
-        <div class="section-card" id="knowledge-base">
-            <h2 class="section-title">
-                <span class="section-emoji">📚</span>
-                知识库精选文件
-            </h2>
-            
-            <div class="knowledge-files-grid" id="knowledgeFilesGrid">
-                <div class="loading-message">正在加载文件...</div>
-            </div>
-            
-            <div class="view-more-section">
-                <a href="#files" class="view-more-btn" onclick="document.getElementById('files').style.display='block'; document.getElementById('files').scrollIntoView({behavior: 'smooth'});">
-                    查看更多文件 →
-                </a>
-            </div>
-        </div>
+
 
         <div class="section-card" id="template">
             <h2 class="section-title">
@@ -1908,6 +1879,26 @@
                     <td>• 对策评估与筛选<br>• 行动计划（5W2H）<br>• 检查验证表<br>• 标准化与推广方案</td>
                 </tr>
             </table>
+        </div>
+    </div>
+
+    <!-- 精选文件板块 -->
+    <div class="glass-container">
+        <div class="section-card" id="knowledge-base">
+            <h2 class="section-title">
+                <span class="section-emoji">📚</span>
+                精选文件 (Featured Files)
+            </h2>
+            
+            <div class="knowledge-files-list" id="knowledgeFilesGrid">
+                <div class="loading-message">正在加载文件...</div>
+            </div>
+            
+            <div class="view-more-section">
+                <a href="#files" class="view-more-btn" onclick="document.getElementById('files').style.display='block'; document.getElementById('files').scrollIntoView({behavior: 'smooth'});">
+                    查看更多文件 →
+                </a>
+            </div>
         </div>
     </div>
 
@@ -2623,6 +2614,8 @@
                 }
             }
 
+
+
             async deleteFile(fileId, fileName) {
                 if (!confirm(`确定要删除文件 "${fileName}" 吗？`)) {
                     return;
@@ -2689,24 +2682,18 @@
                     const fileExtension = file.original_name.split('.').pop().toLowerCase();
                     const fileIcon = this.getFileIcon(fileExtension);
                     const uploadDate = new Date(file.upload_time).toLocaleDateString('zh-CN');
-                    const description = file.description || '暂无描述';
                     
                     return `
-                        <div class="knowledge-file-card" onclick="fileManager.downloadFile('${file.id}', '${file.original_name}')">
-                            <div class="file-card-header">
-                                <span class="file-type-icon">${fileIcon}</span>
-                                <h3 class="file-card-title">${file.original_name}</h3>
+                        <div class="knowledge-file-item">
+                            <span class="file-item-icon">${fileIcon}</span>
+                            <div class="file-item-info">
+                                <div class="file-item-name">${file.original_name}</div>
+                                <div class="file-item-meta">${uploadDate} • ${this.formatFileSize(file.size)}</div>
                             </div>
-                            <div class="file-card-meta">
-                                ${uploadDate} • ${this.formatFileSize(file.size)}
-                            </div>
-                            <div class="file-card-description">
-                                ${description}
-                            </div>
-                            <div class="file-card-actions">
-                                <a href="#" class="file-action-btn download-btn" onclick="event.stopPropagation(); fileManager.downloadFile('${file.id}', '${file.original_name}')">
+                            <div class="file-item-actions">
+                                <button class="file-action-btn download-btn" onclick="fileManager.downloadFile('${file.id}', '${file.original_name}')">
                                     📥 下载
-                                </a>
+                                </button>
                             </div>
                         </div>
                     `;
@@ -2771,7 +2758,7 @@
                     font-weight: 500;
                     z-index: 10000;
                     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-                    background: ${type === 'success' ? 'linear-gradient(135deg, #4caf50, #45a049)' : 'linear-gradient(135deg, #f44336, #d32f2f)'};
+                    background: ${type === 'success' ? 'linear-gradient(135deg, #4caf50, #45a049)' : type === 'info' ? 'linear-gradient(135deg, #2196f3, #1976d2)' : 'linear-gradient(135deg, #f44336, #d32f2f)'};
                 `;
 
                 // 添加到页面
