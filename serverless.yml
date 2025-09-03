@@ -1,0 +1,42 @@
+# serverless.yml
+
+service: feishu-dashboard-api
+
+provider:
+  name: tencent
+  region: ap-guangzhou
+  runtime: Nodejs12.16
+  credentials: ~/.tencentcloud/credentials
+
+functions:
+  api:
+    handler: server.handler
+    events:
+      - apigw:
+          parameters:
+            protocols:
+              - http
+              - https
+            environment: release
+            endpoints:
+              - path: /api/feishu/projects
+                method: GET
+                function: ${self:service}-${self:provider.stage}-api
+              - path: /api/feishu/projects
+                method: POST
+                function: ${self:service}-${self:provider.stage}-api
+              - path: /api/feishu/projects/{id}
+                method: PUT
+                function: ${self:service}-${self:provider.stage}-api
+              - path: /api/feishu/projects/{id}
+                method: DELETE
+                function: ${self:service}-${self:provider.stage}-api
+              - path: /api/feishu/fields
+                method: GET
+                function: ${self:service}-${self:provider.stage}-api
+              - path: /api/feishu/test
+                method: GET
+                function: ${self:service}-${self:provider.stage}-api
+
+plugins:
+  - serverless-tencent-scf
