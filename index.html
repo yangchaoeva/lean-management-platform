@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>精益知识库</title>
+    <title>精益管理知识库</title>
     <style>
         * {
             margin: 0;
@@ -244,6 +244,122 @@
              color: #f44336;
          }
          
+         /* 超小屏幕优化 - 320px 及以下 */
+         @media (max-width: 320px) {
+             .glass-container {
+                 margin: 5px;
+                 padding: 10px;
+             }
+             
+             .main-title {
+                 font-size: 1.6rem;
+                 margin-bottom: 8px;
+             }
+             
+             .nav-item {
+                 padding: 6px 10px;
+                 font-size: 0.75rem;
+             }
+             
+             .section-title {
+                 font-size: 1.2rem;
+             }
+             
+             .table-container {
+                 margin: 10px 0;
+             }
+             
+             .glass-table {
+                 min-width: 300px;
+             }
+             
+             .glass-table th,
+             .glass-table td {
+                 padding: 6px 4px;
+                 font-size: 0.7rem;
+             }
+             
+             .glass-table th {
+                 font-size: 0.75rem;
+             }
+             
+             .overview-card {
+                 padding: 12px;
+             }
+             
+             .overview-icon {
+                 font-size: 1.5rem;
+             }
+             
+             .overview-label {
+                 font-size: 0.9rem;
+             }
+             
+             .overview-content {
+                 font-size: 0.8rem;
+             }
+             
+             .hover-item {
+                 padding: 10px;
+                 font-size: 0.8rem;
+             }
+             
+             .quote-card {
+                 padding: 12px;
+                 margin: 10px 0;
+             }
+             
+             .quote-text {
+                 font-size: 0.85rem;
+             }
+         }
+         
+         /* 触摸友好样式 */
+         @media (hover: none) and (pointer: coarse) {
+             .nav-item,
+             .hover-item,
+             .overview-card,
+             .philosophy-card,
+             .principle-item {
+                 -webkit-tap-highlight-color: rgba(255, 255, 255, 0.1);
+                 touch-action: manipulation;
+             }
+             
+             .nav-item:active,
+             .hover-item:active {
+                 transform: scale(0.98);
+                 background: rgba(255, 255, 255, 0.15);
+             }
+             
+             .overview-card:active {
+                 transform: scale(0.98);
+             }
+             
+             .upload-btn:active {
+                 transform: scale(0.95);
+             }
+             
+             /* 移动端滚动优化 */
+             .table-container {
+                 -webkit-overflow-scrolling: touch;
+                 scrollbar-width: thin;
+             }
+             
+             .table-container::-webkit-scrollbar {
+                 height: 4px;
+             }
+             
+             .table-container::-webkit-scrollbar-track {
+                 background: rgba(255, 255, 255, 0.1);
+                 border-radius: 2px;
+             }
+             
+             .table-container::-webkit-scrollbar-thumb {
+                 background: rgba(255, 255, 255, 0.3);
+                 border-radius: 2px;
+             }
+         }
+         
          .error-message {
              color: #f44336;
              font-size: 12px;
@@ -311,13 +427,18 @@
         }
 
         /* 表格样式 */
+        .table-container {
+            overflow-x: auto;
+            margin: 20px 0;
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
         .glass-table {
             width: 100%;
+            min-width: 600px;
             border-collapse: collapse;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 15px;
-            overflow: hidden;
-            margin: 20px 0;
+            background: transparent;
         }
 
         .glass-table th,
@@ -326,12 +447,16 @@
             text-align: left;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             color: white;
+            white-space: nowrap;
         }
 
         .glass-table th {
             background: rgba(255, 255, 255, 0.1);
             font-weight: 600;
             font-size: 1.1rem;
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
 
         .glass-table tr:hover {
@@ -400,7 +525,72 @@
         }
 
         /* 响应式设计 */
+        @media (max-width: 1200px) {
+            .glass-container {
+                margin: 15px;
+                padding: 25px;
+            }
+            
+            .content-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+        }
+        
         @media (max-width: 768px) {
+            .glass-container {
+                margin: 10px;
+                padding: 20px;
+            }
+            
+            .main-title {
+                font-size: 2.5rem;
+                margin-bottom: 15px;
+            }
+            
+            .subtitle {
+                font-size: 1rem;
+                margin-bottom: 15px;
+            }
+            
+            .quote {
+                font-size: 1rem;
+                padding: 15px;
+                margin-bottom: 30px;
+            }
+            
+            .nav-menu {
+                margin-bottom: 30px;
+            }
+            
+            .nav-left {
+                gap: 10px;
+            }
+            
+            .nav-item {
+                padding: 10px 16px;
+                font-size: 0.9rem;
+            }
+            
+            .nav-right {
+                top: 15px;
+                right: 15px;
+            }
+            
+            .content-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .section-card {
+                padding: 20px;
+            }
+            
+            .section-title {
+                font-size: 1.5rem;
+                margin-bottom: 15px;
+            }
+            
             .overview-grid {
                 grid-template-columns: 1fr;
                 gap: 15px;
@@ -414,6 +604,154 @@
                 font-size: 2rem;
             }
         }
+        
+        @media (max-width: 480px) {
+            .glass-container {
+                margin: 5px;
+                padding: 15px;
+            }
+            
+            .main-title {
+                font-size: 2rem;
+                margin-bottom: 10px;
+            }
+            
+            .subtitle {
+                font-size: 0.9rem;
+                margin-bottom: 10px;
+            }
+            
+            .quote {
+                font-size: 0.9rem;
+                padding: 12px;
+                margin-bottom: 20px;
+            }
+            
+            .nav-menu {
+                margin-bottom: 20px;
+            }
+            
+            .nav-left {
+                gap: 8px;
+                justify-content: center;
+            }
+            
+            .nav-item {
+                padding: 8px 12px;
+                font-size: 0.8rem;
+                border-radius: 20px;
+            }
+            
+            .nav-right {
+                top: 10px;
+                right: 10px;
+            }
+            
+            .login-trigger,
+            .user-info {
+                padding: 8px 12px;
+                font-size: 0.8rem;
+            }
+            
+            .section-card {
+                padding: 15px;
+            }
+            
+            .section-title {
+                font-size: 1.3rem;
+                margin-bottom: 12px;
+            }
+            
+            .section-emoji {
+                font-size: 1.5rem;
+            }
+            
+            .overview-card {
+                padding: 15px;
+            }
+            
+            .overview-icon {
+                font-size: 1.8rem;
+                margin-bottom: 8px;
+            }
+            
+            .overview-label {
+                font-size: 1rem;
+                margin-bottom: 6px;
+            }
+            
+            .overview-content {
+                 font-size: 0.85rem;
+             }
+             
+             .table-container {
+                 margin: 15px 0;
+                 border-radius: 10px;
+             }
+             
+             .glass-table {
+                 min-width: 450px;
+             }
+             
+             .glass-table th,
+             .glass-table td {
+                 padding: 8px 6px;
+                 font-size: 0.75rem;
+             }
+             
+             .glass-table th {
+                 font-size: 0.8rem;
+             }
+             
+             .quote-card {
+                 padding: 15px;
+                 margin: 15px 0;
+             }
+             
+             .quote-text {
+                 font-size: 0.9rem;
+             }
+             
+             .glass-list {
+                 gap: 10px;
+             }
+             
+             .hover-item {
+                 padding: 12px;
+                 font-size: 0.85rem;
+             }
+             
+             .upload-form {
+                 padding: 15px;
+             }
+             
+             .file-input-wrapper {
+                 padding: 15px;
+             }
+             
+             .upload-btn {
+                 padding: 8px 16px;
+                 font-size: 0.8rem;
+             }
+             
+             .content-grid {
+                 grid-template-columns: 1fr;
+                 gap: 15px;
+             }
+             
+             .philosophy-card {
+                 padding: 15px;
+             }
+             
+             .philosophy-cards {
+                 gap: 15px;
+             }
+             
+             .principle-item {
+                 padding: 8px 12px;
+                 font-size: 0.8rem;
+             }
+         }
 
         /* 列表样式 */
         .glass-list {
@@ -677,12 +1015,26 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            transition: all 0.3s ease;
+        }
+
+        .principle-item.single-line:hover {
+            white-space: normal;
+            overflow: visible;
+            text-overflow: unset;
         }
 
         .principle-item.single-line strong {
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            transition: all 0.3s ease;
+        }
+
+        .principle-item.single-line:hover strong {
+            white-space: normal;
+            overflow: visible;
+            text-overflow: unset;
         }
 
         .connection-lines {
@@ -1532,10 +1884,12 @@
     <div class="bg-animation"></div>
     
     <div class="glass-container">
-        <h1 class="main-title">精益知识库</h1>
+        <h1 class="main-title">精益管理知识库</h1>
         <p class="subtitle">YUEXIU HEALTH & YUEXIU PROPERTY</p>
         <div class="quote">
             "把客户需求当作一切工作的起点和终点，客户定义了我们的成功。"
+            <br>
+            <span style="font-size: 0.8em;">"Customer needs define our success."</span>
         </div>
         
         <nav class="nav-menu">
@@ -1860,28 +2214,30 @@
                 </div>
             </div>
             
-            <table class="glass-table">
-                <tr>
-                    <th>页码</th>
-                    <th>标题</th>
-                    <th>核心栏目</th>
-                </tr>
-                <tr>
-                    <td><strong>第1页</strong></td>
-                    <td>背景·目标·指标</td>
-                    <td>• 课题背景<br>• 基准水平 / 改善水平 / 革新水平<br>• 战略/规范要求</td>
-                </tr>
-                <tr>
-                    <td><strong>第2页</strong></td>
-                    <td>需求·现状·差距</td>
-                    <td>• 客户与需求列表<br>• 现状数据/图片/模型<br>• 理想状态描绘<br>• 差距 = 问题可视化</td>
-                </tr>
-                <tr>
-                    <td><strong>第3页</strong></td>
-                    <td>计划·验证·标准化</td>
-                    <td>• 对策评估与筛选<br>• 行动计划（5W2H）<br>• 检查验证表<br>• 标准化与推广方案</td>
-                </tr>
-            </table>
+            <div class="table-container">
+                <table class="glass-table">
+                    <tr>
+                        <th>页码</th>
+                        <th>标题</th>
+                        <th>核心栏目</th>
+                    </tr>
+                    <tr>
+                        <td><strong>第1页</strong></td>
+                        <td>背景·目标·指标</td>
+                        <td>• 课题背景<br>• 基准水平 / 改善水平 / 革新水平<br>• 战略/规范要求</td>
+                    </tr>
+                    <tr>
+                        <td><strong>第2页</strong></td>
+                        <td>需求·现状·差距</td>
+                        <td>• 客户与需求列表<br>• 现状数据/图片/模型<br>• 理想状态描绘<br>• 差距 = 问题可视化</td>
+                    </tr>
+                    <tr>
+                        <td><strong>第3页</strong></td>
+                        <td>计划·验证·标准化</td>
+                        <td>• 对策评估与筛选<br>• 行动计划（5W2H）<br>• 检查验证表<br>• 标准化与推广方案</td>
+                    </tr>
+                </table>
+            </div>
         </div>
     </div>
 

@@ -59,11 +59,51 @@
         /* 导航菜单 */
         .nav-menu {
             display: flex;
-            justify-content: center;
+            justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
             margin-bottom: 40px;
             gap: 15px;
+        }
+
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 25px;
+            padding: 8px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .user-name {
+            color: white;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
         }
 
         .nav-item {
@@ -86,6 +126,43 @@
 
         .nav-item.active {
             background: rgba(102, 126, 234, 0.8);
+        }
+
+        /* 刷新控件样式 */
+        .refresh-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .refresh-btn {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .refresh-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: scale(1.1);
+        }
+
+        .refresh-btn.loading .refresh-icon {
+            animation: spin 1s linear infinite;
+        }
+
+        .last-update {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.8rem;
+            white-space: nowrap;
         }
 
         /* 页面标题 */
@@ -264,6 +341,52 @@
                 font-size: 2rem;
             }
         }
+
+        /* 加载动画 */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes progressMove {
+            0% { transform: translateX(-100%); }
+            50% { transform: translateX(0%); }
+            100% { transform: translateX(100%); }
+        }
+
+        @keyframes fadeInOut {
+             0% { opacity: 0; transform: translateY(-10px); }
+             20% { opacity: 1; transform: translateY(0); }
+             80% { opacity: 1; transform: translateY(0); }
+             100% { opacity: 0; transform: translateY(-10px); }
+         }
+
+         @keyframes shimmer {
+             0% { background-position: -200px 0; }
+             100% { background-position: calc(200px + 100%) 0; }
+         }
+
+         /* 骨架屏样式 */
+         .skeleton-text {
+             height: 16px;
+             background: linear-gradient(90deg, 
+                 rgba(255, 255, 255, 0.1) 25%, 
+                 rgba(255, 255, 255, 0.2) 50%, 
+                 rgba(255, 255, 255, 0.1) 75%);
+             background-size: 200px 100%;
+             border-radius: 4px;
+             animation: shimmer 1.5s infinite;
+             margin: 2px 0;
+         }
+
+         .skeleton-text.large {
+             height: 24px;
+         }
+
+         .skeleton-text.small {
+             height: 12px;
+             width: 60%;
+         }
     </style>
 </head>
 <body>
@@ -272,10 +395,23 @@
     <!-- 导航菜单 -->
     <div class="glass-container">
         <div class="nav-menu">
-            <a href="index.html" class="nav-item">🏠 首页</a>
+            <div class="nav-left">
+                <a href="index.html" class="nav-item">🏠 首页</a>
+                <a href="feishu-dashboard.html" class="nav-item active">📊 数据仪表板</a>
+            </div>
             
-            <a href="feishu-dashboard.html" class="nav-item active">📊 数据仪表板</a>
-            
+            <div class="nav-right">
+                <div class="refresh-controls">
+                    <button id="refreshBtn" onclick="manualRefresh()" class="refresh-btn" title="刷新数据">
+                        <span class="refresh-icon">🔄</span>
+                    </button>
+                    <span id="lastUpdateTime" class="last-update">--</span>
+                </div>
+                <div class="user-info">
+                    <span class="user-name">管理员</span>
+                    <div class="user-avatar">👤</div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -371,31 +507,205 @@
     <script>
         let allProjects = [];
         let charts = {};
+        let isLoading = false;
+        let retryCount = 0;
+        const maxRetries = 3;
+        const cacheKey = 'feishu_projects_cache';
+        const cacheExpiry = 5 * 60 * 1000; // 5分钟缓存
 
         // 页面加载时初始化
         document.addEventListener('DOMContentLoaded', function() {
+            // 先尝试从缓存加载数据
+            loadFromCache();
+            // 然后异步加载最新数据
             loadProjectData();
         });
 
+        // 从缓存加载数据
+        function loadFromCache() {
+            try {
+                const cached = localStorage.getItem(cacheKey);
+                if (cached) {
+                    const { data, timestamp } = JSON.parse(cached);
+                    const now = Date.now();
+                    
+                    // 检查缓存是否过期
+                    if (now - timestamp < cacheExpiry) {
+                        allProjects = data;
+                        updateStatistics();
+                        renderCharts();
+                        renderProjectsTable();
+                        showCacheIndicator();
+                        return true;
+                    }
+                }
+            } catch (error) {
+                console.warn('缓存加载失败:', error);
+            }
+            
+            // 如果没有缓存，显示骨架屏
+            showSkeletonScreen();
+            return false;
+        }
+
+        // 显示骨架屏
+        function showSkeletonScreen() {
+            // 统计卡片骨架屏
+            const statsCards = document.querySelectorAll('.stat-card .stat-value');
+            statsCards.forEach(card => {
+                card.innerHTML = '<div class="skeleton-text"></div>';
+            });
+            
+            // 表格骨架屏
+            const tableBody = document.getElementById('projectsTableBody');
+            let skeletonRows = '';
+            for (let i = 0; i < 5; i++) {
+                skeletonRows += `
+                    <tr>
+                        <td><div class="skeleton-text"></div></td>
+                        <td><div class="skeleton-text"></div></td>
+                        <td><div class="skeleton-text"></div></td>
+                        <td><div class="skeleton-text"></div></td>
+                        <td><div class="skeleton-text"></div></td>
+                        <td><div class="skeleton-text"></div></td>
+                        <td><div class="skeleton-text"></div></td>
+                        <td><div class="skeleton-text"></div></td>
+                        <td><div class="skeleton-text"></div></td>
+                    </tr>
+                `;
+            }
+            tableBody.innerHTML = skeletonRows;
+        }
+
+        // 保存数据到缓存
+        function saveToCache(data) {
+            try {
+                const cacheData = {
+                    data: data,
+                    timestamp: Date.now()
+                };
+                localStorage.setItem(cacheKey, JSON.stringify(cacheData));
+            } catch (error) {
+                console.warn('缓存保存失败:', error);
+            }
+        }
+
+        // 显示缓存指示器
+        function showCacheIndicator() {
+            const indicator = document.createElement('div');
+            indicator.className = 'cache-indicator';
+            indicator.textContent = '显示缓存数据，正在更新...';
+            indicator.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: rgba(255, 193, 7, 0.9);
+                color: white;
+                padding: 8px 16px;
+                border-radius: 20px;
+                font-size: 12px;
+                z-index: 1000;
+                animation: fadeInOut 3s ease-in-out;
+            `;
+            document.body.appendChild(indicator);
+            
+            setTimeout(() => {
+                if (indicator.parentNode) {
+                    indicator.parentNode.removeChild(indicator);
+                }
+            }, 3000);
+        }
+
         // 加载项目数据
         async function loadProjectData() {
+            if (isLoading) return;
+            
+            // 检查网络状态
+            if (!isOnline) {
+                showError('网络连接已断开，请检查网络后重试', true);
+                return;
+            }
+            
             try {
-                showLoading();
-                const response = await fetch('/api/feishu/projects');
+                isLoading = true;
+                showLoadingWithProgress();
+                
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000); // 10秒超时
+                
+                const response = await fetch('/api/feishu/projects', {
+                    signal: controller.signal,
+                    headers: {
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache'
+                    }
+                });
+                
+                clearTimeout(timeoutId);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
                 const data = await response.json();
                 
                 if (data.success) {
                     allProjects = data.data.projects || [];
+                    saveToCache(allProjects);
                     updateStatistics();
                     renderCharts();
                     renderProjectsTable();
+                    retryCount = 0;
+                    lastRefreshTime = Date.now();
+                    updateLastRefreshTime();
+                    hideLoadingIndicator();
+                    showSuccessIndicator();
                 } else {
-                    showError('获取项目数据失败: ' + data.message);
+                    throw new Error(data.message || '获取数据失败');
                 }
             } catch (error) {
                 console.error('加载项目数据失败:', error);
-                showError('网络连接失败，请检查服务器状态');
+                
+                if (error.name === 'AbortError') {
+                    showError('请求超时，请检查网络连接', true);
+                } else if (!isOnline) {
+                    showError('网络连接已断开，显示缓存数据', false);
+                } else if (retryCount < maxRetries) {
+                    retryCount++;
+                    showRetryMessage(retryCount);
+                    setTimeout(() => loadProjectData(), 2000 * retryCount);
+                } else {
+                    showError('多次尝试失败，请刷新页面重试', true);
+                }
+            } finally {
+                isLoading = false;
             }
+        }
+        
+        // 显示成功指示器
+        function showSuccessIndicator() {
+            const indicator = document.createElement('div');
+            indicator.className = 'success-indicator';
+            indicator.textContent = '✅ 数据更新成功';
+            indicator.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: rgba(76, 175, 80, 0.9);
+                color: white;
+                padding: 8px 16px;
+                border-radius: 20px;
+                font-size: 12px;
+                z-index: 1000;
+                animation: fadeInOut 2s ease-in-out;
+            `;
+            document.body.appendChild(indicator);
+            
+            setTimeout(() => {
+                if (indicator.parentNode) {
+                    indicator.parentNode.removeChild(indicator);
+                }
+            }, 2000);
         }
 
         // 显示加载状态
@@ -403,9 +713,125 @@
             document.getElementById('projectsTableBody').innerHTML = '<tr><td colspan="9" class="loading">加载中...</td></tr>';
         }
 
+        // 显示带进度的加载状态
+        function showLoadingWithProgress() {
+            document.getElementById('projectsTableBody').innerHTML = `
+                <tr>
+                    <td colspan="9" class="loading">
+                        <div style="display: flex; align-items: center; gap: 10px; justify-content: center;">
+                            <div class="loading-spinner" style="
+                                width: 20px;
+                                height: 20px;
+                                border: 2px solid rgba(255, 255, 255, 0.3);
+                                border-top: 2px solid white;
+                                border-radius: 50%;
+                                animation: spin 1s linear infinite;
+                            "></div>
+                            <span>正在加载数据...</span>
+                        </div>
+                        <div class="progress-bar" style="
+                            margin-top: 10px;
+                            width: 200px;
+                            height: 4px;
+                            background: rgba(255, 255, 255, 0.2);
+                            border-radius: 2px;
+                            overflow: hidden;
+                            margin-left: auto;
+                            margin-right: auto;
+                        ">
+                            <div class="progress-fill" style="
+                                height: 100%;
+                                background: linear-gradient(90deg, #667eea, #764ba2);
+                                border-radius: 2px;
+                                width: 60%;
+                                animation: progressMove 2s ease-in-out infinite;
+                            "></div>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }
+
+        // 隐藏加载指示器
+        function hideLoadingIndicator() {
+            // 加载完成后会通过renderProjectsTable()来更新表格内容
+        }
+
+        // 显示重试消息
+        function showRetryMessage(attempt) {
+            document.getElementById('projectsTableBody').innerHTML = `
+                <tr>
+                    <td colspan="9" class="loading">
+                        <div style="display: flex; align-items: center; gap: 10px; justify-content: center;">
+                            <div class="loading-spinner" style="
+                                width: 20px;
+                                height: 20px;
+                                border: 2px solid rgba(255, 255, 255, 0.3);
+                                border-top: 2px solid white;
+                                border-radius: 50%;
+                                animation: spin 1s linear infinite;
+                            "></div>
+                            <span>第 ${attempt} 次重试中...</span>
+                        </div>
+                        <div style="margin-top: 10px; font-size: 12px; opacity: 0.7;">
+                            正在重新连接服务器
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }
+
         // 显示错误信息
-        function showError(message) {
-            document.getElementById('projectsTableBody').innerHTML = `<tr><td colspan="9" class="error">${message}</td></tr>`;
+        function showError(message, showRetryButton = false) {
+            document.getElementById('projectsTableBody').innerHTML = `
+                <tr>
+                    <td colspan="9" class="error">
+                        <div>${message}</div>
+                        ${showRetryButton ? `
+                            <button onclick="retryLoad()" style="
+                                margin-top: 15px;
+                                padding: 8px 16px;
+                                background: rgba(255, 255, 255, 0.2);
+                                border: 1px solid rgba(255, 255, 255, 0.3);
+                                border-radius: 20px;
+                                color: white;
+                                cursor: pointer;
+                                transition: all 0.3s ease;
+                            " onmouseover="this.style.background='rgba(255, 255, 255, 0.3)'" 
+                               onmouseout="this.style.background='rgba(255, 255, 255, 0.2)'">
+                                重新加载
+                            </button>
+                        ` : ''}
+                    </td>
+                </tr>
+            `;
+        }
+
+        // 重试加载
+        function retryLoad() {
+            retryCount = 0;
+            loadProjectData();
+        }
+
+        // 手动刷新
+        function manualRefresh() {
+            const refreshBtn = document.getElementById('refreshBtn');
+            refreshBtn.classList.add('loading');
+            retryCount = 0;
+            loadProjectData().finally(() => {
+                refreshBtn.classList.remove('loading');
+            });
+        }
+
+        // 更新最后更新时间
+        function updateLastRefreshTime() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('zh-CN', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            document.getElementById('lastUpdateTime').textContent = `更新于 ${timeStr}`;
         }
 
         // 更新统计数据
@@ -714,8 +1140,117 @@
             }
         }
 
-        // 定期刷新数据
-        setInterval(loadProjectData, 30000); // 每30秒刷新一次
+        // 智能刷新机制
+        let refreshInterval;
+        let isPageVisible = true;
+        let lastRefreshTime = 0;
+        const minRefreshInterval = 30000; // 最小刷新间隔30秒
+        
+        // 页面可见性检测
+        document.addEventListener('visibilitychange', function() {
+            isPageVisible = !document.hidden;
+            
+            if (isPageVisible) {
+                // 页面重新可见时，检查是否需要刷新
+                const now = Date.now();
+                if (now - lastRefreshTime > minRefreshInterval) {
+                    loadProjectData();
+                }
+                startAutoRefresh();
+            } else {
+                // 页面隐藏时停止自动刷新
+                stopAutoRefresh();
+            }
+        });
+        
+        // 开始自动刷新
+        function startAutoRefresh() {
+            stopAutoRefresh(); // 先清除现有的定时器
+            if (isPageVisible) {
+                refreshInterval = setInterval(() => {
+                    if (isPageVisible && !isLoading) {
+                        loadProjectData();
+                    }
+                }, minRefreshInterval);
+            }
+        }
+        
+        // 停止自动刷新
+        function stopAutoRefresh() {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+                refreshInterval = null;
+            }
+        }
+        
+        // 页面加载完成后开始自动刷新
+        window.addEventListener('load', function() {
+            startAutoRefresh();
+        });
+        
+        // 页面卸载时清理
+        window.addEventListener('beforeunload', function() {
+            stopAutoRefresh();
+        });
+        
+        // 网络状态检测
+        let isOnline = navigator.onLine;
+        
+        window.addEventListener('online', function() {
+            isOnline = true;
+            hideOfflineIndicator();
+            // 网络恢复时立即刷新数据
+            if (isPageVisible) {
+                loadProjectData();
+            }
+            startAutoRefresh();
+        });
+        
+        window.addEventListener('offline', function() {
+            isOnline = false;
+            showOfflineIndicator();
+            stopAutoRefresh();
+        });
+        
+        // 显示离线指示器
+        function showOfflineIndicator() {
+            let indicator = document.getElementById('offlineIndicator');
+            if (!indicator) {
+                indicator = document.createElement('div');
+                indicator.id = 'offlineIndicator';
+                indicator.innerHTML = `
+                    <div style="
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        right: 0;
+                        background: #ff6b6b;
+                        color: white;
+                        text-align: center;
+                        padding: 10px;
+                        z-index: 10000;
+                        font-size: 14px;
+                        box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+                    ">
+                        🔌 网络连接已断开，数据可能不是最新的
+                    </div>
+                `;
+                document.body.appendChild(indicator);
+            }
+        }
+        
+        // 隐藏离线指示器
+        function hideOfflineIndicator() {
+            const indicator = document.getElementById('offlineIndicator');
+            if (indicator) {
+                indicator.remove();
+            }
+        }
+        
+        // 检查初始网络状态
+        if (!isOnline) {
+            showOfflineIndicator();
+        }
     </script>
 </body>
 </html>
