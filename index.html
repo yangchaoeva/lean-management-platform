@@ -1544,6 +1544,9 @@
                 <a href="#method" class="nav-item">改善六步法</a>
                 <a href="#tools" class="nav-item">工具地图</a>
                 <a href="#template" class="nav-item">三页纸</a>
+                
+                
+                <a href="/feishu-dashboard" class="nav-item">📈 数据仪表板</a>
                 <a href="#files" class="nav-item">📁 文件管理</a>
             </div>
         </nav>
@@ -1941,7 +1944,7 @@
                     <div class="upload-placeholder">
                         <div class="upload-icon">📤</div>
                         <p>点击选择文件或拖拽文件到此处</p>
-                        <p class="upload-hint">支持 PDF, DOC, XLS, PPT, TXT, MD, ZIP, RAR 格式，最大 10MB</p>
+                        <p class="upload-hint">支持 PDF, DOC, XLS, PPT, TXT, MD, ZIP, RAR 格式，最大 20MB</p>
                     </div>
                 </div>
                 <div class="upload-controls">
@@ -2170,8 +2173,16 @@
         // 平滑滚动导航
         document.querySelectorAll('.nav-item').forEach(item => {
             item.addEventListener('click', function(e) {
+                const href = this.getAttribute('href');
+                
+                // 如果是外部链接（不以#开头），允许默认行为
+                if (!href.startsWith('#')) {
+                    return; // 允许默认的链接跳转行为
+                }
+                
+                // 只对锚点链接阻止默认行为并进行平滑滚动
                 e.preventDefault();
-                const targetId = this.getAttribute('href').substring(1);
+                const targetId = href.substring(1);
                 const targetElement = document.getElementById(targetId);
                 if (targetElement) {
                     // 如果是文件管理，先显示界面
@@ -2536,7 +2547,7 @@
                 document.querySelector('.upload-placeholder').innerHTML = `
                     <div class="upload-icon">📤</div>
                     <p>点击选择文件或拖拽文件到此处</p>
-                    <p class="upload-hint">支持 PDF, DOC, XLS, PPT, TXT, MD, ZIP, RAR 格式，最大 10MB</p>
+                    <p class="upload-hint">支持 PDF, DOC, XLS, PPT, TXT, MD, ZIP, RAR 格式，最大 20MB</p>
                 `;
             }
 

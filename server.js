@@ -6,6 +6,7 @@ const multer = require('multer');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const sqlite3 = require('sqlite3').verbose();
+const feishuApi = require('./feishu-api');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -27,6 +28,15 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static('.'));
 app.use('/uploads', express.static(uploadsDir));
 
+// 路由配置
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+app.get('/feishu-dashboard', (req, res) => {
+  res.sendFile(path.join(__dirname, 'feishu-dashboard.html'));
+});
+
 // 文件上传配置
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -41,7 +51,7 @@ const storage = multer.diskStorage({
 const upload = multer({ 
   storage: storage,
   limits: {
-    fileSize: 10 * 1024 * 1024 // 10MB 限制
+    fileSize: 20 * 1024 * 1024 // 20MB 限制
   },
   fileFilter: (req, file, cb) => {
     // 允许的文件类型
@@ -219,6 +229,253 @@ app.get('/api/user', authenticateToken, (req, res) => {
     username: req.user.username,
     role: req.user.role
   });
+});
+
+// 提案相关API
+// 获取提案统计数据
+app.get('/api/proposals/stats', (req, res) => {
+  const statsQuery = `
+    SELECT 
+      COUNT(*) as total,
+      SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed,
+      SUM(CASE WHEN status = 'ongoing' THEN 1 ELSE 0 END) as ongoing,
+      SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending
+    FROM proposals
+  `;
+  
+  db.get(statsQuery, (err, row) => {
+    if (err) {
+      console.error('获取提案统计失败:', err);
+      res.status(500).json({ error: '获取统计数据失败' });
+    } else {
+      res.json({
+        total: row.total || 0,
+        completed: row.completed || 0,
+        ongoing: row.ongoing || 0,
+        pending: row.pending || 0
+      });
+    }
+  });
+});
+
+// 获取按部门分类的提案数据
+app.get('/api/proposals/by-department', (req, res) => {
+  const departmentQuery = `
+    SELECT department, COUNT(*) as count
+    FROM proposals
+    GROUP BY department
+    ORDER BY count DESC
+  `;
+  
+  db.all(departmentQuery, (err, rows) => {
+    if (err) {
+      console.error('获取部门分类失败:', err);
+      res.status(500).json({ error: '获取部门分类数据失败' });
+    } else {
+      res.json(rows);
+    }
+  });
+});
+
+// 获取按月份分类的提案数据
+app.get('/api/proposals/by-month', (req, res) => {
+  const monthQuery = `
+    SELECT 
+      strftime('%Y-%m', created_at) as month,
+      COUNT(*) as count
+    FROM proposals
+    GROUP BY strftime('%Y-%m', created_at)
+    ORDER BY month DESC
+    LIMIT 12
+  `;
+  
+  db.all(monthQuery, (err, rows) => {
+    if (err) {
+      console.error('获取月份分类失败:', err);
+      res.status(500).json({ error: '获取月份分类数据失败' });
+    } else {
+      res.json(rows);
+    }
+  });
+});
+
+// 获取重点提案
+app.get('/api/proposals/featured', (req, res) => {
+  const featuredQuery = `
+    SELECT *
+    FROM proposals
+    WHERE priority IN ('high', 'urgent') OR expected_value > 1000000
+    ORDER BY 
+      CASE priority 
+        WHEN 'urgent' THEN 1
+        WHEN 'high' THEN 2
+        ELSE 3
+      END,
+      expected_value DESC
+    LIMIT 10
+  `;
+  
+  db.all(featuredQuery, (err, rows) => {
+    if (err) {
+      console.error('获取重点提案失败:', err);
+      res.status(500).json({ error: '获取重点提案数据失败' });
+    } else {
+      res.json(rows);
+    }
+  });
+});
+
+// 飞书多维表格API路由
+
+// 获取项目列表
+app.get('/api/feishu/projects', async (req, res) => {
+  try {
+    const { page_size = 100, page_token = '', view_id = '' } = req.query;
+    
+    const result = await feishuApi.getTableRecords({
+      page_size: parseInt(page_size),
+      page_token,
+      view_id
+    });
+    
+    // 转换数据格式
+    const projects = result.records.map(record => feishuApi.convertFeishuToProject(record));
+    
+    res.json({
+      success: true,
+      data: {
+        projects,
+        has_more: result.has_more,
+        page_token: result.page_token,
+        total: result.total
+      }
+    });
+  } catch (error) {
+    console.error('获取飞书项目列表失败:', error.message);
+    res.status(500).json({ 
+      success: false, 
+      error: '获取项目列表失败',
+      message: error.message 
+    });
+  }
+});
+
+// 创建新项目
+app.post('/api/feishu/projects', authenticateToken, async (req, res) => {
+  try {
+    const projectData = req.body;
+    
+    // 转换数据格式
+    const feishuFields = feishuApi.convertProjectToFeishu(projectData);
+    
+    const result = await feishuApi.createTableRecord(feishuFields);
+    
+    // 转换回前端格式
+    const project = feishuApi.convertFeishuToProject(result);
+    
+    res.json({
+      success: true,
+      data: project
+    });
+  } catch (error) {
+    console.error('创建飞书项目失败:', error.message);
+    res.status(500).json({ 
+      success: false, 
+      error: '创建项目失败',
+      message: error.message 
+    });
+  }
+});
+
+// 更新项目
+app.put('/api/feishu/projects/:id', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const projectData = req.body;
+    
+    // 转换数据格式
+    const feishuFields = feishuApi.convertProjectToFeishu(projectData);
+    
+    const result = await feishuApi.updateTableRecord(id, feishuFields);
+    
+    // 转换回前端格式
+    const project = feishuApi.convertFeishuToProject(result);
+    
+    res.json({
+      success: true,
+      data: project
+    });
+  } catch (error) {
+    console.error('更新飞书项目失败:', error.message);
+    res.status(500).json({ 
+      success: false, 
+      error: '更新项目失败',
+      message: error.message 
+    });
+  }
+});
+
+// 删除项目
+app.delete('/api/feishu/projects/:id', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const result = await feishuApi.deleteTableRecord(id);
+    
+    res.json({
+      success: true,
+      message: '项目删除成功'
+    });
+  } catch (error) {
+    console.error('删除飞书项目失败:', error.message);
+    res.status(500).json({ 
+      success: false, 
+      error: '删除项目失败',
+      message: error.message 
+    });
+  }
+});
+
+// 获取表格字段信息
+app.get('/api/feishu/fields', async (req, res) => {
+  try {
+    const fields = await feishuApi.getTableFields();
+    
+    res.json({
+      success: true,
+      data: fields
+    });
+  } catch (error) {
+    console.error('获取飞书表格字段失败:', error.message);
+    res.status(500).json({ 
+      success: false, 
+      error: '获取表格字段失败',
+      message: error.message 
+    });
+  }
+});
+
+// 测试飞书连接
+app.get('/api/feishu/test', async (req, res) => {
+  try {
+    const token = await feishuApi.getTenantAccessToken();
+    
+    res.json({
+      success: true,
+      message: '飞书API连接正常',
+      data: {
+        hasToken: !!token,
+        tokenLength: token ? token.length : 0
+      }
+    });
+  } catch (error) {
+    console.error('飞书API连接测试失败:', error.message);
+    res.status(500).json({ 
+      success: false, 
+      error: '飞书API连接失败',
+      message: error.message 
+    });
+  }
 });
 
 // 错误处理中间件

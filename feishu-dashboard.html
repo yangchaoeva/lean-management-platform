@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>飞书项目数据仪表板 - 精益管理平台</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', 'PingFang SC', 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        /* 动态背景 */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* 玻璃拟态容器 */
+        .glass-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            margin: 20px;
+            padding: 30px;
+            transition: all 0.3s ease;
+        }
+
+        .glass-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 45px rgba(0, 0, 0, 0.2);
+        }
+
+        /* 导航菜单 */
+        .nav-menu {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 40px;
+            gap: 15px;
+        }
+
+        .nav-item {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 25px;
+            padding: 12px 24px;
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .nav-item.active {
+            background: rgba(102, 126, 234, 0.8);
+        }
+
+        /* 页面标题 */
+        .page-title {
+            text-align: center;
+            color: white;
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 2rem;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        /* 统计卡片网格 */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1rem;
+        }
+
+        /* 图表网格 */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .chart-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .chart-title {
+            color: white;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .chart-canvas {
+            max-height: 300px;
+        }
+
+        /* 项目列表 */
+        .projects-table {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 1.5rem;
+            overflow-x: auto;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            color: white;
+        }
+
+        .table th,
+        .table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .table th {
+            background: rgba(255, 255, 255, 0.1);
+            font-weight: bold;
+        }
+
+        .table tr:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .progress-bar {
+            width: 100px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .status-badge {
+            padding: 0.3rem 0.8rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .status-pending {
+            background: rgba(243, 156, 18, 0.8);
+            color: white;
+        }
+
+        .status-active {
+            background: rgba(46, 204, 113, 0.8);
+            color: white;
+        }
+
+        .status-completed {
+            background: rgba(52, 152, 219, 0.8);
+            color: white;
+        }
+
+        .loading {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.8);
+            padding: 2rem;
+            font-size: 1.1rem;
+        }
+
+        .error {
+            text-align: center;
+            color: rgba(231, 76, 60, 0.9);
+            padding: 2rem;
+            font-size: 1.1rem;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .page-title {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation"></div>
+    
+    <!-- 导航菜单 -->
+    <div class="glass-container">
+        <div class="nav-menu">
+            <a href="index.html" class="nav-item">🏠 首页</a>
+            
+            <a href="feishu-dashboard.html" class="nav-item active">📊 数据仪表板</a>
+            
+        </div>
+    </div>
+
+    <!-- 页面标题 -->
+    <h1 class="page-title">📊 飞书项目数据仪表板</h1>
+
+    <!-- 统计概览 -->
+    <div class="glass-container">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number" id="totalProjects">-</div>
+                <div class="stat-label">总项目数</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalProposals">-</div>
+                <div class="stat-label">总提案数</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="completedProposals">-</div>
+                <div class="stat-label">已完成提案</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="excellentProposals">-</div>
+                <div class="stat-label">优秀提案</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="completionRate">-</div>
+                <div class="stat-label">完成率</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="excellenceRate">-</div>
+                <div class="stat-label">优秀率</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 图表展示 -->
+    <div class="glass-container">
+        <div class="charts-grid">
+            <!-- 项目状态分布 -->
+            <div class="chart-container">
+                <div class="chart-title">项目状态分布</div>
+                <canvas id="statusChart" class="chart-canvas"></canvas>
+            </div>
+
+            <!-- 项目类型分布 -->
+            <div class="chart-container">
+                <div class="chart-title">项目类型分布</div>
+                <canvas id="typeChart" class="chart-canvas"></canvas>
+            </div>
+
+            <!-- 部门提案统计 -->
+            <div class="chart-container">
+                <div class="chart-title">部门提案统计</div>
+                <canvas id="departmentChart" class="chart-canvas"></canvas>
+            </div>
+
+            <!-- 提案完成率对比 -->
+            <div class="chart-container">
+                <div class="chart-title">提案完成率对比</div>
+                <canvas id="completionChart" class="chart-canvas"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- 项目详细列表 -->
+    <div class="glass-container">
+        <div class="chart-title">项目详细信息</div>
+        <div class="projects-table">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>项目名称</th>
+                        <th>状态</th>
+                        <th>类型</th>
+                        <th>部门</th>
+                        <th>总提案</th>
+                        <th>已完成</th>
+                        <th>优秀提案</th>
+                        <th>完成率</th>
+                        <th>进度</th>
+                    </tr>
+                </thead>
+                <tbody id="projectsTableBody">
+                    <tr>
+                        <td colspan="9" class="loading">加载中...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        let allProjects = [];
+        let charts = {};
+
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            loadProjectData();
+        });
+
+        // 加载项目数据
+        async function loadProjectData() {
+            try {
+                showLoading();
+                const response = await fetch('/api/feishu/projects');
+                const data = await response.json();
+                
+                if (data.success) {
+                    allProjects = data.data.projects || [];
+                    updateStatistics();
+                    renderCharts();
+                    renderProjectsTable();
+                } else {
+                    showError('获取项目数据失败: ' + data.message);
+                }
+            } catch (error) {
+                console.error('加载项目数据失败:', error);
+                showError('网络连接失败，请检查服务器状态');
+            }
+        }
+
+        // 显示加载状态
+        function showLoading() {
+            document.getElementById('projectsTableBody').innerHTML = '<tr><td colspan="9" class="loading">加载中...</td></tr>';
+        }
+
+        // 显示错误信息
+        function showError(message) {
+            document.getElementById('projectsTableBody').innerHTML = `<tr><td colspan="9" class="error">${message}</td></tr>`;
+        }
+
+        // 更新统计数据
+        function updateStatistics() {
+            const totalProjects = allProjects.length;
+            let totalProposals = 0;
+            let completedProposals = 0;
+            let excellentProposals = 0;
+
+            allProjects.forEach(project => {
+                const total = parseInt(project.totalProposals) || 0;
+                const completed = parseInt(project.completedProposals) || 0;
+                const excellent = parseFloat(project.excellentProposals) || 0;
+                
+                totalProposals += total;
+                completedProposals += completed;
+                excellentProposals += excellent;
+            });
+
+            const completionRate = totalProposals > 0 ? ((completedProposals / totalProposals) * 100).toFixed(1) : 0;
+            const excellenceRate = totalProposals > 0 ? ((excellentProposals / totalProposals) * 100).toFixed(1) : 0;
+
+            document.getElementById('totalProjects').textContent = totalProjects;
+            document.getElementById('totalProposals').textContent = totalProposals;
+            document.getElementById('completedProposals').textContent = completedProposals;
+            document.getElementById('excellentProposals').textContent = excellentProposals.toFixed(1);
+            document.getElementById('completionRate').textContent = completionRate + '%';
+            document.getElementById('excellenceRate').textContent = excellenceRate + '%';
+        }
+
+        // 渲染图表
+        function renderCharts() {
+            renderStatusChart();
+            renderTypeChart();
+            renderDepartmentChart();
+            renderCompletionChart();
+        }
+
+        // 项目状态分布图
+        function renderStatusChart() {
+            const statusCounts = {};
+            allProjects.forEach(project => {
+                const status = project.status || '待开始';
+                statusCounts[status] = (statusCounts[status] || 0) + 1;
+            });
+
+            const ctx = document.getElementById('statusChart').getContext('2d');
+            if (charts.statusChart) {
+                charts.statusChart.destroy();
+            }
+            
+            charts.statusChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(statusCounts),
+                    datasets: [{
+                        data: Object.values(statusCounts),
+                        backgroundColor: [
+                            'rgba(243, 156, 18, 0.8)',
+                            'rgba(46, 204, 113, 0.8)',
+                            'rgba(52, 152, 219, 0.8)',
+                            'rgba(231, 76, 60, 0.8)'
+                        ],
+                        borderColor: 'rgba(255, 255, 255, 0.8)',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: 'white'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 项目类型分布图
+        function renderTypeChart() {
+            const typeCounts = {};
+            allProjects.forEach(project => {
+                const type = project.type || '未分类';
+                typeCounts[type] = (typeCounts[type] || 0) + 1;
+            });
+
+            const ctx = document.getElementById('typeChart').getContext('2d');
+            if (charts.typeChart) {
+                charts.typeChart.destroy();
+            }
+            
+            charts.typeChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(typeCounts),
+                    datasets: [{
+                        data: Object.values(typeCounts),
+                        backgroundColor: [
+                            'rgba(102, 126, 234, 0.8)',
+                            'rgba(118, 75, 162, 0.8)',
+                            'rgba(240, 147, 251, 0.8)'
+                        ],
+                        borderColor: 'rgba(255, 255, 255, 0.8)',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: 'white'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 部门提案统计图
+        function renderDepartmentChart() {
+            const departmentStats = {};
+            allProjects.forEach(project => {
+                const departments = Array.isArray(project.department) ? project.department : [project.department || '未分类'];
+                departments.forEach(dept => {
+                    if (!departmentStats[dept]) {
+                        departmentStats[dept] = { total: 0, completed: 0 };
+                    }
+                    departmentStats[dept].total += parseInt(project.totalProposals) || 0;
+                    departmentStats[dept].completed += parseInt(project.completedProposals) || 0;
+                });
+            });
+
+            const labels = Object.keys(departmentStats);
+            const totalData = labels.map(dept => departmentStats[dept].total);
+            const completedData = labels.map(dept => departmentStats[dept].completed);
+
+            const ctx = document.getElementById('departmentChart').getContext('2d');
+            if (charts.departmentChart) {
+                charts.departmentChart.destroy();
+            }
+            
+            charts.departmentChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: '总提案数',
+                            data: totalData,
+                            backgroundColor: 'rgba(102, 126, 234, 0.8)',
+                            borderColor: 'rgba(102, 126, 234, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: '已完成提案',
+                            data: completedData,
+                            backgroundColor: 'rgba(46, 204, 113, 0.8)',
+                            borderColor: 'rgba(46, 204, 113, 1)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                color: 'white'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.2)'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: 'white'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.2)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: 'white'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 提案完成率对比图
+        function renderCompletionChart() {
+            const projectNames = allProjects.map(p => p.name || '未命名').slice(0, 10); // 只显示前10个项目
+            const completionRates = allProjects.slice(0, 10).map(project => {
+                const total = parseInt(project.totalProposals) || 0;
+                const completed = parseInt(project.completedProposals) || 0;
+                return total > 0 ? ((completed / total) * 100).toFixed(1) : 0;
+            });
+
+            const ctx = document.getElementById('completionChart').getContext('2d');
+            if (charts.completionChart) {
+                charts.completionChart.destroy();
+            }
+            
+            charts.completionChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: projectNames,
+                    datasets: [{
+                        label: '完成率 (%)',
+                        data: completionRates,
+                        borderColor: 'rgba(240, 147, 251, 1)',
+                        backgroundColor: 'rgba(240, 147, 251, 0.2)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                color: 'white',
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.2)'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: 'white',
+                                maxRotation: 45
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.2)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: 'white'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 渲染项目表格
+        function renderProjectsTable() {
+            const tbody = document.getElementById('projectsTableBody');
+            
+            if (allProjects.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" class="loading">暂无项目数据</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = allProjects.map(project => {
+                const total = parseInt(project.totalProposals) || 0;
+                const completed = parseInt(project.completedProposals) || 0;
+                const completionRate = total > 0 ? ((completed / total) * 100).toFixed(1) : 0;
+                const progress = project.progress || 0;
+                
+                return `
+                    <tr>
+                        <td>${project.name || '未命名项目'}</td>
+                        <td><span class="status-badge status-${getStatusClass(project.status)}">${project.status || '待开始'}</span></td>
+                        <td>${project.type || '-'}</td>
+                        <td>${Array.isArray(project.department) ? project.department.join(', ') : (project.department || '-')}</td>
+                        <td>${total}</td>
+                        <td>${completed}</td>
+                        <td>${project.excellentProposals || 0}</td>
+                        <td>${completionRate}%</td>
+                        <td>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${progress}%"></div>
+                            </div>
+                            ${progress}%
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // 获取状态样式类
+        function getStatusClass(status) {
+            switch (status) {
+                case '进行中': return 'active';
+                case '已完成': return 'completed';
+                case '待开始': return 'pending';
+                default: return 'pending';
+            }
+        }
+
+        // 定期刷新数据
+        setInterval(loadProjectData, 30000); // 每30秒刷新一次
+    </script>
+</body>
+</html>
